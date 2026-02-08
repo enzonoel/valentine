@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valentine Freedom Mode</title>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- Base Layout --- */
+        body {
+            white-space: nowrap;
+            letter-spacing: -0.5px;
+            margin: 0;
+            height: 100vh;
+            width: 100vw;
+            font-family: 'Courier Prime', monospace;
+            transition: background 0.3s ease;
+            overflow: hidden;
+            background-color: #ffffff;
+        }
+
+        .element {
+            position: absolute;
+            transition: all 0.3s ease-in-out;
+            transform-origin: center;
+        }
+
+        #stateImage {
+            max-width: 3000px;
+            display: none;
+            z-index: 999;
+            pointer-events: none;
+        }
+
+        /* --- Buttons --- */
+        .btn {
+            padding: 15px 25px;
+            min-width: 100px;
+            border: 2px solid #333;
+            border-radius: 0px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            text-transform: uppercase;
+            box-shadow: 4px 4px 0px #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .btn:active {
+            box-shadow: 1px 1px 0px #333;
+            transform: translate(3px, 3px);
+        }
+
+        #yesBtn {
+            background: #289569;
+        }
+
+        #noBtn {
+            background: #FC4532;
+        }
+
+        /* --- Animations --- */
+        @keyframes shake {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+
+            25% {
+                transform: translate(-52%, -48%) rotate(-1deg);
+            }
+
+            50% {
+                transform: translate(-48%, -52%) rotate(1deg);
+            }
+
+            75% {
+                transform: translate(-51%, -49%) rotate(-0.5deg);
+            }
+
+            100% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+        }
+
+        .shake {
+            animation: shake 0.1s infinite !important;
+        }
+
+        @keyframes flashEffect {
+            0% {
+                filter: brightness(1);
+            }
+
+            50% {
+                filter: brightness(3);
+            }
+
+            100% {
+                filter: brightness(1);
+            }
+        }
+
+        .flash-trigger {
+            animation: flashEffect 0.15s ease-out;
+        }
+
+        /* --- Celebration Screen & Effects --- */
+        #yay-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            width: 100%;
+            height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            z-index: 20;
+            position: relative;
+        }
+
+        #celebrationImage {
+            max-width: 400px;
+            max-height: 45vh;
+            width: auto;
+            height: auto;
+            margin: 20px 0;
+            object-fit: contain;
+            z-index: 25;
+        }
+
+        #celebrationText {
+            white-space: pre-wrap;
+            max-width: 600px;
+            font-size: 1.25rem;
+            line-height: 1.6;
+            color: #1a1a1a;
+            margin-top: 10px;
+            font-weight: 400;
+            z-index: 25;
+        }
+
+        h1 {
+            font-weight: 700;
+            color: #333;
+            margin: 0;
+            font-size: 2.5rem;
+            z-index: 25;
+        }
+
+        /* --- Floating Hearts --- */
+        .heart {
+            position: absolute;
+            color: #ff0040;
+            font-size: 20px;
+            user-select: none;
+            pointer-events: none;
+            animation: float 4s linear infinite;
+            z-index: 15;
+            opacity: 0;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-10vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* --- Confetti --- */
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            z-index: 30;
+            animation: confetti-fall 3s ease-out forwards;
+        }
+
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1 id="question" class="element">Will you?</h1>
+    <p id="message" class="element">Subtext here.</p>
+    <img id="stateImage" class="element" src="" alt="PNG Layer">
+
+    <button id="yesBtn" class="element btn">Yes</button>
+    <button id="noBtn" class="element btn">No</button>
+
+    <div id="yay-screen">
+        <h1>WOOOOOO! </h1>
+        <img id="celebrationImage" src="" alt="Celebration Image">
+        <p id="celebrationText"></p>
+    </div>
+
+    <script>
+        const elements = {
+            no: document.getElementById('noBtn'),
+            yes: document.getElementById('yesBtn'),
+            q: document.getElementById('question'),
+            m: document.getElementById('message'),
+            img: document.getElementById('stateImage'),
+            yayScreen: document.getElementById('yay-screen'),
+            yayImg: document.getElementById('celebrationImage'),
+            yayText: document.getElementById('celebrationText')
+        };
+
+        const CREAM = "#ffffff";
+        const RED = "#ff0000";
+
+        // --- CELEBRATION EDIT SECTION ---
+        const FINAL_IMAGE_URL = "images/c1.png";
+        const FINAL_PARAGRAPH_TEXT = "Thank you Mia for being the best, most beautiful girlfriend I could ever ask for. I wouldn't want spend Valentine's or any day with anyone else. You mean the world to me and I feel so priveliged to share my life with someone so special. I love you \n -Enzo";
+
+        let stateIndex = 0;
+
+        const states = [
+            /* 0 */ { bg: CREAM, q: { text: "Will you be my Valentine?", top: "25%", left: "50%", size: "1.2rem" }, m: { text: "", top: "40%", left: "50%", size: "0.9rem" }, img: { src: "images/s1.png", top: "38%", left: "50%", width: "180px" }, no: { top: "40%", left: "80%", scale: 1, color: "#FC4532" }, yes: { top: "40%", left: "20%", scale: 1 } },
+            /* 1-18 remain the same as your provided flow */
+            /* 1 */ { bg: CREAM, q: { text: "I think you made a mistake! \n haha... lets try again!\n Will you be my Valentine?", top: "22%", left: "49%", size: "1.2rem" }, m: { text: "", top: "40%", left: "50%", size: "0.9rem" }, img: { src: "images/s2.png", top: "35%", left: "50%", width: "200px" }, no: { top: "40%", left: "80%", scale: 1, color: "#FC4532" }, yes: { top: "40%", left: "20%", scale: 1 } },
+            /* 2 */ { bg: CREAM, q: { text: "Please?", top: "22%", left: "49%", size: "1.2rem" }, m: { text: "", top: "40%", left: "50%", size: "0.9rem" }, img: { src: "images/sb.png", top: "35%", left: "50%", width: "200px" }, no: { top: "40%", left: "80%", scale: 1, color: "#FC4532" }, yes: { top: "40%", left: "20%", scale: 1 } },
+            /* 3 */ { bg: CREAM, q: { text: "You're breaking my heart", top: "22%", left: "49%", size: "1.2rem" }, m: { text: "", top: "40%", left: "50%", size: "0.9rem" }, img: { src: "images/sbh.png", top: "35%", left: "50%", width: "200px" }, no: { top: "40%", left: "80%", scale: 1, color: "#FC4532" }, yes: { top: "40%", left: "20%", scale: 1 } },
+            /* 4 */ { bg: CREAM, q: { text: "You know what? \n Let me help you out a bit.", top: "25%", left: "49%", size: "1.2rem" }, m: { text: "", top: "55%", left: "50%", size: "0.9rem" }, img: { src: "images/s4.png", top: "40%", left: "73%", width: "200px" }, no: { top: "40%", left: "80%", scale: 1, color: "#FC4532" }, yes: { top: "40%", left: "20%", scale: 1 } },
+            /* 5 */ { bg: CREAM, q: { text: "I hate this \n stupid button.", top: "22%", left: "45%", size: "1.3rem" }, m: { text: "", top: "55%", left: "50%", size: "0.9rem" }, img: { src: "images/s5.gif", top: "23.7%", left: "75%", width: "900px" }, no: { top: "40%", left: "73%", scale: 1, color: "#FC4532" }, yes: { top: "40%", left: "20%", scale: 1 } },
+            /* 6 */ { bg: CREAM, q: { text: "RAHHHHHHH", top: "25%", left: "43%", size: "1.5rem" }, m: { text: "", top: "55%", left: "45%", size: "0.9rem" }, img: { src: "images/s52.gif", top: "36%", left: "44%", width: "350px" }, no: { top: "40%", left: "73%", scale: 1, color: "#FC4532" }, yes: { top: "40%", left: "20%", scale: 1 } },
+            /* 7 */ { bg: CREAM, q: { text: "Ok I'm tired. \n can you just say yes now?", top: "19%", left: "49%", size: "1.2rem" }, m: { text: "", top: "55%", left: "50%", size: "0.9rem" }, img: { src: "images/s3.png", top: "35%", left: "50%", width: "200px" }, no: { top: "40%", left: "80%", scale: 1, color: "#FC4532" }, yes: { top: "40%", left: "20%", scale: 1 } },
+            /* 8 */ { bg: CREAM, q: { text: "Im starting to get pretty angry.", top: "19%", left: "49%", size: "1.2rem" }, m: { text: "", top: "55%", left: "50%", size: "0.9rem" }, img: { src: "images/s7.png", top: "30%", left: "50%", width: "250px" }, no: { top: "40%", left: "80%", scale: 1, color: "#FC4532" }, yes: { top: "40%", left: "20%", scale: 1 } },
+            /* 9 */ { bg: CREAM, q: { text: "You don't want to hit no again \n trust me.", top: "19%", left: "49%", size: "1.2rem" }, m: { text: "", top: "55%", left: "50%", size: "0.9rem" }, img: { src: "images/s8.png", top: "30%", left: "50%", width: "250px" }, no: { top: "40%", left: "80%", scale: 1, color: "#FC4532" }, yes: { top: "40%", left: "20%", scale: 1 } },
+            /* 10 */ { bg: RED, q: { text: "I warned you...", top: "19%", left: "49%", size: "1.2rem" }, m: { text: "", top: "55%", left: "50%", size: "0.8rem" }, img: { src: "images/s9.png", top: "30%", left: "50%", width: "250px" }, no: { top: "40%", left: "80%", scale: 0.8, color: "#FC4532" }, yes: { top: "40%", left: "20%", scale: 1 } },
+            /* 11 */ { bg: RED, q: { text: "I'm afraid \n you don't really have a choice, \n Mia...", top: "18%", left: "49%", size: "1.2rem" }, m: { text: "", top: "55%", left: "50%", size: "0.8rem" }, img: { src: "images/s9.png", top: "30%", left: "50%", width: "250px" }, no: { top: "40%", left: "80%", scale: 0.7, color: "#FC4532" }, yes: { top: "40%", left: "20%", scale: 1.2 } },
+            /* 12 */ { bg: RED, q: { text: "It's over now.", top: "15%", left: "50%", size: "1.3rem" }, m: { text: "", top: "55%", left: "50%", size: "0.8rem" }, img: { src: "images/s10.gif", top: "30%", left: "50%", width: "500px" }, no: { top: "40%", left: "80%", scale: 0.7, color: "#FC4532" }, yes: { top: "40%", left: "20%", scale: 1.4 } },
+            /* 13 */ { bg: RED, q: { text: "HAHAHAHAHA.", top: "15%", left: "50%", size: "1.3rem" }, m: { text: "", top: "55%", left: "50%", size: "0.8rem" }, img: { src: "images/s11.gif", top: "30%", left: "50%", width: "500px" }, no: { top: "80%", left: "63%", scale: 0.7, color: "#FC4532" }, yes: { top: "40%", left: "20%", scale: 1.5 } },
+            /* 14 */ { bg: RED, q: { text: "JUST GIVE UP ALREADY", top: "15%", left: "50%", size: "1.4rem" }, m: { text: "", top: "55%", left: "50%", size: "0.8rem" }, img: { src: "images/s11.gif", top: "30%", left: "50%", width: "550px" }, no: { top: "21%", left: "30%", scale: 0.7, color: "#FC4532" }, yes: { top: "40%", left: "20%", scale: 1.6 } },
+            /* 15 */ { bg: RED, q: { text: "THERE IS NO ESCAPE", top: "12%", left: "50%", size: "1.6rem" }, m: { text: "", top: "55%", left: "50%", size: "0.8rem" }, img: { src: "images/s11.gif", top: "30%", left: "50%", width: "650px" }, no: { top: "50%", left: "2%", scale: 0.7, color: "#FC4532" }, yes: { top: "40%", left: "20%", scale: 1.8 } },
+            /* 16 */ { bg: RED, q: { text: "IT IS... \n INEVITABLE", top: "4%", left: "50%", size: "3rem" }, m: { text: "", top: "55%", left: "50%", size: "0.8rem" }, img: { src: "images/s11.gif", top: "30%", left: "50%", width: "800px" }, no: { top: "10%", left: "90%", scale: 0.7, color: "#FC4532" }, yes: { top: "60%", left: "50%", scale: 2 } },
+            /* 17 */ { bg: RED, q: { text: "JUST SAY YES.", top: "4%", left: "50%", size: "3rem" }, m: { text: "", top: "55%", left: "50%", size: "0.8rem" }, img: { src: "images/s11.gif", top: "30%", left: "50%", width: "900px" }, no: { top: "80%", left: "22%", scale: 0.5, color: "#FC4532" }, yes: { top: "60%", left: "50%", scale: 3 } },
+            /* 18 */ { bg: CREAM, q: { text: "Whoops! \n Got a little carried away, sorry. \n Anyways, will you be my Valentine?", top: "18%", left: "49%", size: "1.2rem" }, m: { text: "", top: "40%", left: "50%", size: "0.6rem" }, img: { src: "images/s12.png", top: "35%", left: "50%", width: "200px" }, no: { top: "40%", left: "80%", scale: 1, color: "#FC4532" }, yes: { top: "40%", left: "20%", scale: 1 } },
+        ];
+
+        function triggerFlash() {
+            document.body.classList.remove('flash-trigger');
+            void document.body.offsetWidth;
+            document.body.classList.add('flash-trigger');
+        }
+
+        // --- NEW: Confetti Effect ---
+        function createConfetti() {
+            for (let i = 0; i < 50; i++) {
+                const conf = document.createElement('div');
+                conf.classList.add('confetti');
+                conf.style.left = Math.random() * 100 + "vw";
+                conf.style.backgroundColor = ["#ff4d6d", "#ff0040", "#289569", "#ffd700"][Math.floor(Math.random() * 4)];
+                conf.style.transform = `rotate(${Math.random() * 360}deg)`;
+                document.body.appendChild(conf);
+                setTimeout(() => conf.remove(), 3000);
+            }
+        }
+
+        // --- NEW: Floating Hearts ---
+        function startHearts() {
+            setInterval(() => {
+                const heart = document.createElement('div');
+                heart.classList.add('heart');
+                heart.innerHTML = "❤️";
+                heart.style.left = Math.random() * 100 + "vw";
+                heart.style.animationDuration = (Math.random() * 2 + 3) + "s";
+                document.body.appendChild(heart);
+                setTimeout(() => heart.remove(), 5000);
+            }, 300);
+        }
+
+        function updateUI() {
+            const s = states[stateIndex];
+            document.body.style.background = s.bg;
+            if (s.bg === RED) triggerFlash();
+
+            elements.q.innerText = s.q.text;
+            elements.q.style.top = s.q.top;
+            elements.q.style.left = s.q.left;
+            elements.q.style.fontSize = s.q.size;
+            elements.q.style.transform = "translateX(-50%)";
+
+            elements.m.innerText = s.m.text;
+            elements.m.style.top = s.m.top;
+            elements.m.style.left = s.m.left;
+            elements.m.style.fontSize = s.m.size;
+            elements.m.style.transform = "translateX(-50%)";
+
+            if (s.img && s.img.src !== "") {
+                elements.img.src = s.img.src;
+                elements.img.style.display = "block";
+                elements.img.style.top = s.img.top;
+                elements.img.style.left = s.img.left;
+                elements.img.style.width = s.img.width;
+                elements.img.style.transform = "translate(-50%, -50%)";
+            } else {
+                elements.img.style.display = "none";
+            }
+
+            elements.no.style.top = s.no.top;
+            elements.no.style.left = s.no.left;
+            elements.no.style.background = s.no.color;
+
+            const isCaps = s.q.text === s.q.text.toUpperCase() && s.q.text.length > 5;
+            const isStupidState = s.q.text.includes("stupid button");
+            elements.no.classList.toggle('shake', (isCaps || isStupidState));
+
+            if (isCaps || isStupidState) {
+                elements.no.style.transform = `scale(${s.no.scale})`;
+            } else {
+                elements.no.style.transform = `translate(-50%, -50%) scale(${s.no.scale})`;
+            }
+
+            elements.yes.style.top = s.yes.top;
+            elements.yes.style.left = s.yes.left;
+            elements.yes.style.transform = `translate(-50%, -50%) scale(${s.yes.scale})`;
+        }
+
+        elements.no.addEventListener('click', () => {
+            if (stateIndex >= states.length - 1) {
+                stateIndex = 1;
+            } else {
+                stateIndex++;
+            }
+            updateUI();
+        });
+
+        elements.yes.addEventListener('click', () => {
+            document.querySelectorAll('.element, .btn').forEach(el => el.style.display = 'none');
+            elements.yayImg.src = FINAL_IMAGE_URL;
+            elements.yayText.innerText = FINAL_PARAGRAPH_TEXT;
+            elements.yayScreen.style.display = 'flex';
+            document.body.style.background = "#ff4d6d";
+            createConfetti(); // Burst of confetti
+            startHearts();   // Gentle floating hearts
+        });
+
+        updateUI();
+    </script>
+</body>
+
+</html>
